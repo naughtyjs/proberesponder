@@ -25,23 +25,32 @@ export type Handler = {
   handler: (req: IncomingMessage, res: ServerResponse) => void;
 };
 
-export const HTTPStartup =
+export const httpStartup =
   (pres: ProbeResponder) => (req: IncomingMessage, res: ServerResponse): void => {
     const status = pres.notStarted() ? 503 : 200;
     respond(pres, req, res, status);
   };
 
-export const HTTPReady =
+export const httpReady =
   (pres: ProbeResponder) => (req: IncomingMessage, res: ServerResponse): void => {
     const status = pres.notReady() ? 503 : 200;
     respond(pres, req, res, status);
   };
 
-export const HTTPLive =
+export const httpLive =
   (pres: ProbeResponder) => (req: IncomingMessage, res: ServerResponse): void => {
     const status = pres.notLive() ? 503 : 200;
     respond(pres, req, res, status);
   };
+
+/** @deprecated Use httpStartup instead. */
+export const HTTPStartup = httpStartup;
+
+/** @deprecated Use httpReady instead. */
+export const HTTPReady = httpReady;
+
+/** @deprecated Use httpLive instead. */
+export const HTTPLive = httpLive;
 
 const respond = (
   pres: ProbeResponder,
@@ -148,9 +157,9 @@ export const server = (
   handlers: Handler[] = []
 ): http.Server => {
   const defaultHandlers: Handler[] = [
-    { method: "GET", path: HTTPPathStartup, handler: HTTPStartup(pres) },
-    { method: "GET", path: HTTPPathReady, handler: HTTPReady(pres) },
-    { method: "GET", path: HTTPPathLive, handler: HTTPLive(pres) }
+    { method: "GET", path: HTTPPathStartup, handler: httpStartup(pres) },
+    { method: "GET", path: HTTPPathReady, handler: httpReady(pres) },
+    { method: "GET", path: HTTPPathLive, handler: httpLive(pres) }
   ];
 
   const customHandlerKeys = new Set<string>();
@@ -186,7 +195,7 @@ export const server = (
 
   srv.headersTimeout = 1000;
   srv.requestTimeout = 1000;
-  srv.keepAliveTimeout = 5000;
+  srv.keepAliveTimeout = 60000;
 
   srv.listen(port, host);
 

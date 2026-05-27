@@ -105,6 +105,10 @@ export interface Stopper {
   stop(): void;
 }
 
+export type StartOptions = {
+  unref?: boolean;
+};
+
 const asRFC3339 = (value: Date): string => {
   return value.toISOString().replace(/\.\d{3}Z$/, "Z");
 };
@@ -151,8 +155,20 @@ const probe = async (
 export const start = (
   delayMs: number,
   pstatus: ProbeResponder,
-  ...pingers: Prober[]
+  ...pingersOrOptions: Array<Prober | StartOptions>
 ): Stopper | undefined => {
+  const maybeOptions = pingersOrOptions.at(-1);
+  const hasOptions =
+    typeof maybeOptions === "object" &&
+    maybeOptions !== null &&
+    "unref" in maybeOptions;
+  const options: StartOptions | undefined = hasOptions
+    ? (maybeOptions as StartOptions)
+    : undefined;
+  const pingers = hasOptions
+    ? (pingersOrOptions.slice(0, -1) as Prober[])
+    : (pingersOrOptions as Prober[]);
+
   if (pingers.length === 0) {
     return undefined;
   }
@@ -161,6 +177,9 @@ export const start = (
   const intervalRef = setInterval(() => {
     void probe(delayMs, pstatus, ...pingers);
   }, delayMs);
+  if (options?.unref === true) {
+    intervalRef.unref();
+  }
 
   return {
     stop: () => {

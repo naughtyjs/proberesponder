@@ -4,6 +4,7 @@
   "description": "Probe responder utilities for startup/readiness/liveness in Node.js and TypeScript",
   "type": "module",
   "license": "MIT",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/naughtyjs/proberesponder.git"
@@ -39,7 +40,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "devDependencies": {
     "@types/node": "^22.15.30",

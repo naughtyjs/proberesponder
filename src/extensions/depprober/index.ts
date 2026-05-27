@@ -10,5 +10,6 @@ export type {
   CheckerFunc,
   DependencyStatus,
   Prober,
+  StartOptions,
   Stopper
 } from "./depprober";
