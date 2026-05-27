@@ -162,9 +162,7 @@ export const start = (
     typeof maybeOptions === "object" &&
     maybeOptions !== null &&
     "unref" in maybeOptions;
-  const options: StartOptions | undefined = hasOptions
-    ? (maybeOptions as StartOptions)
-    : undefined;
+  const options: StartOptions | undefined = hasOptions ? maybeOptions : undefined;
   const pingers = hasOptions
     ? (pingersOrOptions.slice(0, -1) as Prober[])
     : (pingersOrOptions as Prober[]);

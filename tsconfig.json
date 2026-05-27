@@ -4,8 +4,6 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
-    "declaration": true,
-    "declarationMap": true,
     "noEmit": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -21,7 +19,6 @@
     "src",
     "examples",
     "vitest.config.ts",
-    "tsup.config.ts",
-    "eslint.config.js"
+    "tsup.config.ts"
   ]
 }

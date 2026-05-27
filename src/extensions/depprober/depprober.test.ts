@@ -16,7 +16,7 @@ describe("probeDependencies", () => {
       new Probe({
         id: "db",
         affectedStatuses: [StatusKey.Ready],
-        checker: checkerFunc(async () => undefined)
+        checker: checkerFunc(() => Promise.resolve())
       })
     );
 
@@ -31,7 +31,7 @@ describe("probeDependencies", () => {
       new Probe({
         id: "db",
         affectedStatuses: [StatusKey.Ready],
-        checker: checkerFunc(async () => {
+        checker: checkerFunc(() => {
           throw new Error("down");
         })
       })
@@ -69,12 +69,12 @@ describe("start", () => {
       new Probe({
         id: "db",
         affectedStatuses: [StatusKey.Ready],
-        checker: checkerFunc(async () => undefined)
+        checker: checkerFunc(() => Promise.resolve())
       }),
       new Probe({
         id: "cache",
         affectedStatuses: [StatusKey.Live],
-        checker: checkerFunc(async () => {
+        checker: checkerFunc(() => {
           throw new Error("cache down");
         })
       })
