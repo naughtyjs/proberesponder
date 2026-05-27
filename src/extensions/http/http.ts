@@ -147,15 +147,31 @@ export const server = (
   port: number,
   handlers: Handler[] = []
 ): http.Server => {
-  const allHandlers = [
-    ...handlers,
+  const defaultHandlers: Handler[] = [
     { method: "GET", path: HTTPPathStartup, handler: HTTPStartup(pres) },
     { method: "GET", path: HTTPPathReady, handler: HTTPReady(pres) },
     { method: "GET", path: HTTPPathLive, handler: HTTPLive(pres) }
   ];
 
+  const customHandlerKeys = new Set<string>();
+  for (const customHandler of handlers) {
+    customHandlerKeys.add(`${customHandler.method} ${customHandler.path}`);
+  }
+
+  const allHandlers = [...handlers];
+  for (const defaultHandler of defaultHandlers) {
+    const handlerKey = `${defaultHandler.method} ${defaultHandler.path}`;
+    if (customHandlerKeys.has(handlerKey)) {
+      console.warn(
+        `proberesponder: custom handler overrides default ${handlerKey}`
+      );
+      continue;
+    }
+    allHandlers.push(defaultHandler);
+  }
+
   const srv = http.createServer((req: IncomingMessage, res: ServerResponse) => {
-    const reqUrl = req.url ?? "";
+    const reqUrl = (req.url ?? "").split("?")[0] ?? "";
     const reqMethod = req.method ?? "";
     const matched = allHandlers.find(
       (item) => item.path === reqUrl && item.method === reqMethod
@@ -171,8 +187,8 @@ export const server = (
   srv.headersTimeout = 1000;
   srv.requestTimeout = 1000;
   srv.keepAliveTimeout = 5000;
-  void host;
-  void port;
+
+  srv.listen(port, host);
 
   return srv;
 };
@@ -184,9 +200,13 @@ export const startHTTPServer = async (
 ): Promise<http.Server> => {
   const srv = server(pres, host, port);
 
+  if (srv.listening) {
+    return srv;
+  }
+
   await new Promise<void>((resolve, reject) => {
     srv.once("error", reject);
-    srv.listen(port, host, () => {
+    srv.once("listening", () => {
       srv.off("error", reject);
       resolve();
     });

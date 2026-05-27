@@ -58,18 +58,19 @@ const withTimeout = async (
   run: (signal: AbortSignal) => Promise<void>
 ): Promise<void> => {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_resolve, reject) => {
+    timeout = setTimeout(() => {
+      controller.abort();
+      reject(new Error("probe timeout"));
+    }, timeoutMs);
+  });
   try {
-    await Promise.race([
-      run(controller.signal),
-      new Promise<never>((_resolve, reject) => {
-        setTimeout(() => {
-          reject(new Error("probe timeout"));
-        }, timeoutMs);
-      })
-    ]);
+    await Promise.race([run(controller.signal), timeoutPromise]);
   } finally {
-    clearTimeout(timeout);
+    if (timeout !== undefined) {
+      clearTimeout(timeout);
+    }
   }
 };
 

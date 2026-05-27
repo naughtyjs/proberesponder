@@ -103,8 +103,8 @@ describe("server", () => {
   it("returns 404 for method mismatch", async () => {
     const pRes = new ProbeResponder();
     const srv = server(pRes, "127.0.0.1", 0);
-    await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
     openServers.push(srv);
+    await new Promise<void>((resolve) => srv.once("listening", resolve));
     const address = srv.address() as AddressInfo;
 
     const response = await fetch(
@@ -127,8 +127,8 @@ describe("server", () => {
       }
     ]);
 
-    await new Promise<void>((resolve) => srv.listen(0, "127.0.0.1", resolve));
     openServers.push(srv);
+    await new Promise<void>((resolve) => srv.once("listening", resolve));
     const address = srv.address() as AddressInfo;
 
     const response = await fetch(`http://127.0.0.1:${address.port}/custom`);
@@ -139,5 +139,19 @@ describe("server", () => {
       `http://127.0.0.1:${address.port}${HTTPPathReady}`
     );
     expect(probeResponse.status).toBe(503);
+  });
+
+  it("matches endpoints with query strings", async () => {
+    const pRes = new ProbeResponder();
+    pRes.setNotLive(false);
+    const srv = server(pRes, "127.0.0.1", 0);
+    openServers.push(srv);
+    await new Promise<void>((resolve) => srv.once("listening", resolve));
+    const address = srv.address() as AddressInfo;
+
+    const response = await fetch(
+      `http://127.0.0.1:${address.port}${HTTPPathLive}?foo=bar`
+    );
+    expect(response.status).toBe(200);
   });
 });
