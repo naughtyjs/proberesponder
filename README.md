@@ -1,8 +1,16 @@
 # proberesponder
 
+[![CI](https://github.com/naughtyjs/proberesponder/actions/workflows/ci.yml/badge.svg)](https://github.com/naughtyjs/proberesponder/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 TypeScript + Node.js implementation of probe responder utilities for Kubernetes-style startup, readiness, and liveness endpoints.
 
 All probe statuses are `NOT OK` by default. This is intentional so applications must explicitly mark status as healthy when ready.
+
+## Compatibility
+
+- Node.js `>=20`
+- ESM package (`"type": "module"`)
 
 ## Install
 
@@ -47,6 +55,11 @@ Responses support content negotiation for:
 - `text/plain`
 - `application/xml`
 
+Handler factory exports:
+
+- `httpStartup`, `httpReady`, `httpLive` (preferred)
+- `HTTPStartup`, `HTTPReady`, `HTTPLive` (deprecated aliases)
+
 ## Dependency prober extension
 
 Use `@naughtyjs/proberesponder/depprober` to periodically check dependency health and map failures to probe statuses.
@@ -67,6 +80,8 @@ const stopper = start(
       // throw on failure
     })
   })
+  // optional final argument for Node process behavior
+  // { unref: true }
 );
 
 stopper?.stop();
@@ -77,6 +92,13 @@ stopper?.stop();
 ```bash
 npm install
 npm run typecheck
+npm run lint
 npm test
 npm run build
 ```
+
+## Notes on Go parity
+
+- The package behavior mirrors the Go package features for core status handling, HTTP probes, and dependency probing.
+- TypeScript intentionally does not support Go's nil receiver behavior.
+- Timestamps are RFC3339 in UTC (`Z`) rather than local offset strings.
