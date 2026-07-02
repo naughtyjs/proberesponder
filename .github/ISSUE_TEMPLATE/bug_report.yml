@@ -2,24 +2,24 @@ name: Bug report
 description: Report a bug in proberesponder
 title: "bug: "
 labels:
-  - bug
+    - bug
 body:
-  - type: textarea
-    id: description
-    attributes:
-      label: Description
-      description: What happened?
-    validations:
-      required: true
-  - type: textarea
-    id: steps
-    attributes:
-      label: Steps to reproduce
-      description: Provide clear reproduction steps.
-    validations:
-      required: true
-  - type: input
-    id: node
-    attributes:
-      label: Node.js version
-      placeholder: e.g. 20.18.0
+    - type: textarea
+      id: description
+      attributes:
+          label: Description
+          description: What happened?
+      validations:
+          required: true
+    - type: textarea
+      id: steps
+      attributes:
+          label: Steps to reproduce
+          description: Provide clear reproduction steps.
+      validations:
+          required: true
+    - type: input
+      id: node
+      attributes:
+          label: Node.js version
+          placeholder: e.g. 20.18.0

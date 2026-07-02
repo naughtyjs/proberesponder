@@ -4,6 +4,58 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog.
 
+## [0.2.0] - 2026-07-02
+
+### Added
+
+- `ServerOptions` for the HTTP extension: configurable `headersTimeout`,
+  `requestTimeout`, and `keepAliveTimeout`. `createServer`, `server`, and
+  `startHTTPServer` all accept optional custom handlers and options.
+- `ProbeTimeoutError` (exported from `/depprober`) thrown when a dependency
+  check exceeds its timeout; carries the `timeoutMs` value.
+- `HealthResponse` type alias for the shape returned by
+  `ProbeResponder.healthResponse()`.
+- Async route handlers are now supported by the HTTP server and are wrapped in
+  an error boundary that responds `500` instead of leaving a socket hung.
+- Probe responses now send `Cache-Control: no-store`, an explicit
+  `Content-Length`, and a `; charset=utf-8` content type.
+- Packaging quality gates: `publint --strict` and `@arethetypeswrong/cli`,
+  wired into CI, the release workflow, and `prepublishOnly`.
+
+### Changed
+
+- **Content negotiation is now RFC 9110-compliant.** An absent `q` parameter
+  defaults to quality `1.0` (previously treated as `0`), wildcards (`*/*` and
+  `type/*`) are supported, media types are matched exactly (no more loose
+  substring matching), and ties are broken by a documented server preference
+  (JSON > HTML > plain > XML). This changes selection for `Accept` headers that
+  omit `q` values.
+- HTTP server default timeouts raised from `1000ms` to safe values
+  (`headersTimeout` 10s, `requestTimeout` 15s) to avoid spurious probe failures
+  under load or GC pauses. `keepAliveTimeout` remains 60s.
+- HTTP routing is now O(1) via an internal route map instead of a linear scan.
+- `depprober.start()` options detection is now structural and safe: a probe can
+  never be mistaken for a trailing `StartOptions` object, and `stop()` is
+  idempotent and prevents further scheduling.
+- `probeDependencies()` now stamps every dependency in a batch with a single
+  shared `asOf` instant, captured at the start of the cycle.
+- `DependencyStatus.status` is now typed as `HealthStatus` instead of `string`.
+- The `Accept` response header now advertises all four producible types,
+  including `application/xml`.
+- Coverage thresholds raised to lines 95% / branches 88% / functions 100%.
+
+### Removed
+
+- JavaScript sourcemaps (`*.map`) are no longer published to the npm tarball,
+  reducing install size (~34% smaller).
+
+### Fixed
+
+- Dependency checks that ignore their `AbortSignal` and reject after timing out
+  no longer surface as an `unhandledRejection` that could crash the host
+  process.
+- `escapeMarkup` now escapes in a single pass.
+
 ## [0.1.1] - 2026-06-29
 
 ### Fixed

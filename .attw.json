@@ -1,0 +1,5 @@
+{
+    "$schema": "https://raw.githubusercontent.com/arethetypeswrong/arethetypeswrong.github.io/main/docs/config-schema.json",
+    "ignoreRules": ["cjs-resolves-to-esm", "no-resolution"],
+    "profile": "esm-only"
+}

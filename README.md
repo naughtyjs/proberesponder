@@ -11,7 +11,16 @@ All probe statuses are `NOT OK` by default. This is intentional so applications 
 ## Compatibility
 
 - Node.js `>=20`
-- ESM package (`"type": "module"`)
+- **ESM-only** (`"type": "module"`). This package ships no CommonJS build. From
+  CommonJS you can still load it via dynamic `import()`:
+
+    ```js
+    const { ProbeResponder } = await import("@naughtyjs/proberesponder");
+    ```
+
+    Type resolution (`node16`/`nodenext`/`bundler`) and package correctness are
+    verified in CI with [`publint`](https://publint.dev) and
+    [`@arethetypeswrong/cli`](https://arethetypeswrong.github.io).
 
 ## Install
 
@@ -46,7 +55,7 @@ const pRes = new ProbeResponder();
 await startHTTPServer(pRes, "127.0.0.1", 1234);
 
 pRes.setListener((status, value) => {
-  console.log(status, "changed to", value);
+    console.log(status, "changed to", value);
 });
 
 pRes.setNotStarted(false);
@@ -65,17 +74,56 @@ Default endpoints:
 - `/-/ready`
 - `/-/live`
 
-Responses support content negotiation for:
+Responses use RFC 9110-compliant content negotiation over the `Accept` header:
 
-- `application/json` (fallback default)
+- `application/json` (server-preferred default / fallback)
 - `text/html`
 - `text/plain`
 - `application/xml`
+
+An absent `q` parameter is treated as quality `1.0`, wildcards (`*/*`,
+`text/*`) are honored, and ties are broken by the server preference order
+above. Probe responses are sent with `Cache-Control: no-store` and an explicit
+`Content-Length`.
 
 Handler factory exports:
 
 - `httpStartup`, `httpReady`, `httpLive` (preferred)
 - `HTTPStartup`, `HTTPReady`, `HTTPLive` (deprecated aliases)
+
+### Server options and custom handlers
+
+`createServer`, `server`, and `startHTTPServer` accept optional custom handlers
+and a `ServerOptions` object. Custom handlers may be async and are wrapped in an
+error boundary that responds `500` on failure rather than hanging the socket.
+
+```ts
+import { ProbeResponder } from "@naughtyjs/proberesponder";
+import { startHTTPServer } from "@naughtyjs/proberesponder/http";
+
+const pRes = new ProbeResponder();
+
+const srv = await startHTTPServer(
+    pRes,
+    "127.0.0.1",
+    1234,
+    [
+        {
+            method: "GET",
+            path: "/metrics",
+            handler: async (_req, res) => {
+                res.statusCode = 200;
+                res.end(await collectMetrics());
+            }
+        }
+    ],
+    {
+        headersTimeout: 10_000,
+        requestTimeout: 15_000,
+        keepAliveTimeout: 60_000
+    }
+);
+```
 
 ## Dependency prober extension
 
@@ -88,17 +136,17 @@ import { checkerFunc, Probe, start } from "@naughtyjs/proberesponder/depprober";
 const pRes = new ProbeResponder();
 
 const stopper = start(
-  5000,
-  pRes,
-  new Probe({
-    id: "database",
-    affectedStatuses: [StatusKey.Ready, StatusKey.Live],
-    checker: checkerFunc(async () => {
-      // throw on failure
+    5000,
+    pRes,
+    new Probe({
+        id: "database",
+        affectedStatuses: [StatusKey.Ready, StatusKey.Live],
+        checker: checkerFunc(async () => {
+            // throw on failure
+        })
     })
-  })
-  // optional final argument for Node process behavior
-  // { unref: true }
+    // optional final argument for Node process behavior
+    // { unref: true }
 );
 
 stopper?.stop();
@@ -112,6 +160,7 @@ npm run typecheck
 npm run lint
 npm test
 npm run build
+npm run check:package   # publint + are-the-types-wrong on the built package
 ```
 
 ## Notes on Go parity
@@ -119,5 +168,7 @@ npm run build
 - The package behavior mirrors the Go package features for core status handling, HTTP probes, and dependency probing.
 - TypeScript intentionally does not support Go's nil receiver behavior.
 - Timestamps are RFC3339 in UTC (`Z`) rather than local offset strings.
+- Content negotiation follows RFC 9110 (absent `q` = 1.0, wildcard support),
+  which is stricter than the original loose matching.
 
-Architecture and parity decisions are documented in `docs/adrs/001-port-from-go-to-typescript.md`.
+Architecture and parity decisions are documented in `docs/adrs/`.

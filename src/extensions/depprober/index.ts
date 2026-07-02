@@ -2,6 +2,7 @@ export {
   checkerFunc,
   Probe,
   probeDependencies,
+  ProbeTimeoutError,
   start
 } from "./depprober";
 

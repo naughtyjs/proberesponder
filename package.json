@@ -1,65 +1,97 @@
 {
-  "name": "@naughtyjs/proberesponder",
-  "version": "0.1.1",
-  "description": "Probe responder utilities for startup/readiness/liveness in Node.js and TypeScript",
-  "type": "module",
-  "license": "MIT",
-  "sideEffects": false,
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/naughtyjs/proberesponder.git"
-  },
-  "homepage": "https://github.com/naughtyjs/proberesponder",
-  "bugs": {
-    "url": "https://github.com/naughtyjs/proberesponder/issues"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+    "name": "@naughtyjs/proberesponder",
+    "version": "0.2.0",
+    "description": "Zero-dependency probe responder utilities for Kubernetes-style startup/readiness/liveness in Node.js and TypeScript",
+    "type": "module",
+    "license": "MIT",
+    "sideEffects": false,
+    "keywords": [
+        "kubernetes",
+        "k8s",
+        "health",
+        "healthcheck",
+        "healthz",
+        "liveness",
+        "readiness",
+        "startup",
+        "probe",
+        "readyz",
+        "livez",
+        "observability",
+        "typescript",
+        "esm"
+    ],
+    "author": "naughtyjs",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/naughtyjs/proberesponder.git"
     },
-    "./http": {
-      "import": "./dist/extensions/http/index.js",
-      "types": "./dist/extensions/http/index.d.ts"
+    "homepage": "https://github.com/naughtyjs/proberesponder#readme",
+    "bugs": {
+        "url": "https://github.com/naughtyjs/proberesponder/issues"
     },
-    "./depprober": {
-      "import": "./dist/extensions/depprober/index.js",
-      "types": "./dist/extensions/depprober/index.d.ts"
+    "funding": "https://github.com/sponsors/naughtyjs",
+    "files": [
+        "dist",
+        "!dist/**/*.map",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE"
+    ],
+    "types": "./dist/index.d.ts",
+    "module": "./dist/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        },
+        "./http": {
+            "types": "./dist/extensions/http/index.d.ts",
+            "import": "./dist/extensions/http/index.js"
+        },
+        "./depprober": {
+            "types": "./dist/extensions/depprober/index.d.ts",
+            "import": "./dist/extensions/depprober/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "engines": {
+        "node": ">=20",
+        "npm": ">=10"
+    },
+    "packageManager": "npm@10.9.4",
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://npm.pkg.github.com"
+    },
+    "scripts": {
+        "build": "tsup",
+        "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true});require('node:fs').rmSync('coverage',{recursive:true,force:true})\"",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint \"src/**/*.ts\" \"examples/**/*.ts\" \"scripts/**/*.mjs\" eslint.config.js vitest.config.ts tsup.config.ts",
+        "format": "prettier --write \"**/*.{ts,mjs,js,json,md,yml}\"",
+        "format:check": "prettier --check \"**/*.{ts,mjs,js,json,md,yml}\"",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "test:coverage": "vitest run --coverage --coverage.reportsDirectory=coverage --coverage.reporter=json-summary --coverage.reporter=text && node scripts/check-coverage.mjs",
+        "check:exports": "attw --pack .",
+        "check:publint": "publint --strict",
+        "check:package": "npm run build && npm run check:publint && npm run check:exports",
+        "prepack": "npm run build",
+        "prepublishOnly": "npm run typecheck && npm run lint && npm test && npm run check:package"
+    },
+    "devDependencies": {
+        "@arethetypeswrong/cli": "^0.18.2",
+        "@eslint/js": "^9.28.0",
+        "@types/node": "^22.15.30",
+        "@vitest/coverage-v8": "^4.1.7",
+        "eslint": "^9.28.0",
+        "eslint-config-prettier": "^10.1.5",
+        "prettier": "^3.5.3",
+        "publint": "^0.3.14",
+        "tsup": "^8.5.0",
+        "typescript-eslint": "^8.33.1",
+        "typescript": "^5.8.3",
+        "vitest": "^4.1.7"
     }
-  },
-  "engines": {
-    "node": ">=20",
-    "npm": ">=10"
-  },
-  "packageManager": "npm@10.9.4",
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://npm.pkg.github.com"
-  },
-  "scripts": {
-    "build": "tsup",
-    "typecheck": "tsc --noEmit",
-    "lint": "eslint \"src/**/*.ts\" \"examples/**/*.ts\" vitest.config.ts tsup.config.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage --coverage.reportsDirectory=coverage --coverage.reporter=json-summary --coverage.reporter=text && node scripts/check-coverage.mjs",
-    "prepublishOnly": "npm run typecheck && npm test && npm run build"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.28.0",
-    "@types/node": "^22.15.30",
-    "@vitest/coverage-v8": "^4.1.7",
-    "eslint": "^9.28.0",
-    "eslint-config-prettier": "^10.1.5",
-    "prettier": "^3.5.3",
-    "tsup": "^8.5.0",
-    "typescript-eslint": "^8.33.1",
-    "typescript": "^5.8.3",
-    "vitest": "^4.1.7"
-  }
 }
