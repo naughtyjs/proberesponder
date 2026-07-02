@@ -5,10 +5,19 @@ export default defineConfig({
     include: ["src/**/*.test.ts"],
     coverage: {
       provider: "v8",
+      include: ["src/**/*.ts"],
+      exclude: [
+        "src/**/*.test.ts",
+        // Barrel files are re-exports only; nothing to cover.
+        "src/index.ts",
+        "src/extensions/**/index.ts"
+      ],
       thresholds: {
         global: {
-          lines: 90,
-          branches: 80
+          lines: 95,
+          branches: 88,
+          functions: 100,
+          statements: 95
         }
       }
     }

@@ -28,12 +28,12 @@ Key choices:
 ## Alternatives considered
 
 1. Keep Go service and call it from Node
-   - Pros: no porting cost.
-   - Cons: cross-runtime operational complexity, mismatched packaging expectations.
+    - Pros: no porting cost.
+    - Cons: cross-runtime operational complexity, mismatched packaging expectations.
 
 2. Build framework-specific adapters first (Express/Fastify only)
-   - Pros: easier drop-in for web apps.
-   - Cons: not equivalent to the original stdlib-style package, tighter coupling.
+    - Pros: easier drop-in for web apps.
+    - Cons: not equivalent to the original stdlib-style package, tighter coupling.
 
 ## Consequences
 

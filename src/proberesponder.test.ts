@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  createProbeResponder,
   HealthStatus,
   isHealthOK,
   ProbeResponder,
@@ -113,5 +114,46 @@ describe("ProbeResponder", () => {
     } finally {
       console.error = originalError;
     }
+  });
+
+  it("clears a previously set listener when called with no argument", () => {
+    const pRes = new ProbeResponder();
+    let calls = 0;
+    pRes.setListener(() => {
+      calls += 1;
+    });
+    pRes.setNotLive(false);
+    expect(calls).toBe(1);
+
+    pRes.setListener();
+    pRes.setNotReady(false);
+    expect(calls).toBe(1);
+  });
+
+  it("records an RFC3339 UTC timestamp without milliseconds", () => {
+    const pRes = new ProbeResponder();
+    pRes.setNotLive(false);
+    const value = pRes.healthResponse()["probe->live"] ?? "";
+    // Format: "OK: 2026-06-29T12:00:00Z"
+    expect(value).toMatch(/^OK: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  });
+
+  it("preserves key insertion order in healthResponse", () => {
+    const pRes = new ProbeResponder();
+    pRes.appendHealthResponse("alpha", "1");
+    pRes.appendHealthResponse("beta", "2");
+    const keys = Object.keys(pRes.healthResponse());
+    // The three probe keys are written first (live, ready, startup), then ours.
+    expect(keys.slice(-2)).toEqual(["alpha", "beta"]);
+  });
+});
+
+describe("createProbeResponder", () => {
+  it("returns a fully initialized ProbeResponder", () => {
+    const pRes = createProbeResponder();
+    expect(pRes).toBeInstanceOf(ProbeResponder);
+    expect(pRes.notStarted()).toBe(true);
+    expect(pRes.notReady()).toBe(true);
+    expect(pRes.notLive()).toBe(true);
   });
 });

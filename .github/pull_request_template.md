@@ -1,6 +1,6 @@
 ## Summary
 
-- 
+-
 
 ## Checklist
 
@@ -12,4 +12,4 @@
 
 ## Notes
 
-- 
+-

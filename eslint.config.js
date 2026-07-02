@@ -7,9 +7,10 @@ export default tseslint.config(
     ignores: ["dist", "coverage", "node_modules"]
   },
   eslint.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
   {
+    // Type-aware linting for TypeScript sources only.
     files: ["**/*.ts"],
+    extends: [...tseslint.configs.recommendedTypeChecked],
     languageOptions: {
       parserOptions: {
         project: true,
@@ -18,6 +19,16 @@ export default tseslint.config(
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "error"
+    }
+  },
+  {
+    // Plain JS/MJS tooling files: lint without type information.
+    files: ["**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      globals: {
+        process: "readonly",
+        console: "readonly"
+      }
     }
   },
   prettier

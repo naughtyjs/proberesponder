@@ -20,4 +20,4 @@ export {
   startHTTPServer
 } from "./http";
 
-export type { Handler } from "./http";
+export type { Handler, ServerOptions } from "./http";

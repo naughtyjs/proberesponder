@@ -1,5 +1,18 @@
 {
-  "semi": true,
-  "singleQuote": false,
-  "trailingComma": "none"
+    "$schema": "https://json.schemastore.org/prettierrc",
+    "semi": true,
+    "singleQuote": false,
+    "trailingComma": "none",
+    "printWidth": 80,
+    "tabWidth": 2,
+    "useTabs": false,
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": ["*.json", "*.yml", "*.yaml", "*.md"],
+            "options": {
+                "tabWidth": 4
+            }
+        }
+    ]
 }

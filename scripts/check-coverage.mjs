@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const summaryPath = path.resolve("coverage", "coverage-summary.json");
-const minLines = 90;
-const minBranches = 80;
+const minLines = 95;
+const minBranches = 88;
 
 if (!fs.existsSync(summaryPath)) {
   console.error(`coverage summary not found at ${summaryPath}`);
