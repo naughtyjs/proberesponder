@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog.
 
+## [0.2.1] - 2026-07-02
+
+### Added
+
+- `scripts/bench.mjs` and an `npm run bench` script: a zero-dependency
+  benchmark for `contentNegotiator` throughput and end-to-end HTTP probe
+  request throughput/latency. Documented example output in the README.
+- `.github/workflows/codeql.yml`: CodeQL static analysis for
+  `javascript-typescript` on push/PR to `main` and a weekly schedule.
+
+### Changed
+
+- `ci.yml` now declares an explicit least-privilege `permissions: contents:
+read` block, matching `release.yml`.
+
+### Fixed
+
+- `probeDependencies()` (and therefore `depprober.start()`) no longer loses
+  every dependency's result for a probing cycle when a single custom
+  `Prober`'s `serviceId()` or `affectsStatuses()` implementation throws.
+  Each prober's identity, scope, and check are now resolved defensively and
+  independently; a broken prober reports itself as `NOT OK` under a
+  synthetic `prober[<index>]` id without affecting any other prober in the
+  same batch.
+
 ## [0.2.0] - 2026-07-02
 
 ### Added

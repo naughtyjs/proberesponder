@@ -9,6 +9,7 @@ import {
   ProbeTimeoutError,
   start
 } from "./depprober";
+import type { Prober } from "./depprober";
 import type { AddressInfo } from "node:net";
 
 const sleep = async (ms: number): Promise<void> => {
@@ -160,6 +161,94 @@ describe("probeDependencies", () => {
       new Probe({ id: "noop", affectedStatuses: [StatusKey.Startup] })
     );
     expect(statuses[0]?.status).toBe("OK");
+  });
+
+  it("isolates a prober whose serviceId() throws from the rest of the batch", async () => {
+    const broken: Prober = {
+      serviceId: () => {
+        throw new Error("id boom");
+      },
+      affectsStatuses: () => [StatusKey.Ready],
+      check: () => Promise.resolve()
+    };
+
+    const statuses = await probeDependencies(
+      100,
+      broken,
+      new Probe({
+        id: "db",
+        affectedStatuses: [StatusKey.Ready],
+        checker: checkerFunc(() => Promise.resolve())
+      })
+    );
+
+    expect(statuses).toHaveLength(2);
+    // The broken prober still gets a visible, synthetic entry instead of
+    // silently vanishing or failing the whole batch.
+    expect(statuses[0]?.serviceId).toBe("prober[0]");
+    expect(statuses[0]?.status).toBe("NOT OK");
+    expect(statuses[0]?.affectedStatuses).toEqual([]);
+    // The healthy prober is entirely unaffected by its neighbor's bug.
+    expect(statuses[1]?.serviceId).toBe("db");
+    expect(statuses[1]?.status).toBe("OK");
+  });
+
+  it("isolates a prober whose affectsStatuses() throws from the rest of the batch", async () => {
+    const broken: Prober = {
+      serviceId: () => "flaky",
+      affectsStatuses: () => {
+        throw new Error("scope boom");
+      },
+      check: () => Promise.resolve()
+    };
+
+    const statuses = await probeDependencies(
+      100,
+      new Probe({
+        id: "cache",
+        affectedStatuses: [StatusKey.Live],
+        checker: checkerFunc(() => Promise.resolve())
+      }),
+      broken
+    );
+
+    expect(statuses).toHaveLength(2);
+    expect(statuses[0]?.serviceId).toBe("cache");
+    expect(statuses[0]?.status).toBe("OK");
+    // serviceId() succeeded so its result is preserved even though
+    // affectsStatuses() failed afterwards.
+    expect(statuses[1]?.serviceId).toBe("flaky");
+    expect(statuses[1]?.status).toBe("NOT OK");
+    expect(statuses[1]?.affectedStatuses).toEqual([]);
+  });
+
+  it("does not fail the whole batch when a prober throws synchronously outside check()", async () => {
+    const broken: Prober = {
+      serviceId: () => {
+        throw new Error("id boom");
+      },
+      affectsStatuses: () => {
+        throw new Error("scope boom");
+      },
+      check: () => Promise.resolve()
+    };
+
+    await expect(
+      probeDependencies(
+        100,
+        new Probe({
+          id: "a",
+          affectedStatuses: [StatusKey.Ready],
+          checker: checkerFunc(() => Promise.resolve())
+        }),
+        broken,
+        new Probe({
+          id: "b",
+          affectedStatuses: [StatusKey.Live],
+          checker: checkerFunc(() => Promise.resolve())
+        })
+      )
+    ).resolves.toHaveLength(3);
   });
 });
 
@@ -411,5 +500,36 @@ describe("start", () => {
     await sleep(120);
     // No new cycles should have started after stop().
     expect(runs).toBe(runsAtStop);
+  });
+
+  it("keeps updating healthy probers even when a sibling Prober's metadata methods throw", async () => {
+    const pRes = new ProbeResponder();
+    const broken: Prober = {
+      serviceId: () => {
+        throw new Error("id boom");
+      },
+      affectsStatuses: () => {
+        throw new Error("scope boom");
+      },
+      check: () => Promise.resolve()
+    };
+
+    const stopper = start(
+      20,
+      pRes,
+      broken,
+      new Probe({
+        id: "db",
+        affectedStatuses: [StatusKey.Ready],
+        checker: checkerFunc(() => Promise.resolve())
+      })
+    );
+
+    await sleep(60);
+    stopper?.stop();
+
+    expect(pRes.notReady()).toBe(false);
+    expect(pRes.healthResponse().db).toContain("OK:");
+    expect(pRes.healthResponse()["prober[0]"]).toContain("NOT OK:");
   });
 });

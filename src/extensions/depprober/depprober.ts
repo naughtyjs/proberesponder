@@ -116,6 +116,41 @@ const withTimeout = async (
   }
 };
 
+/**
+ * Probes a single dependency, defensively isolating *any* failure — not just
+ * a failing {@link Checker.check}, but also a misbehaving
+ * `serviceId()`/`affectsStatuses()` implementation — so a single broken
+ * {@link Prober} can never prevent the rest of a batch from reporting their
+ * own results (see {@link probeDependencies}).
+ *
+ * When identity or scope cannot be determined because those methods threw, a
+ * synthetic `prober[<index>]` service id is used and no statuses are
+ * considered affected: the failure is still visible in the health payload
+ * under that synthetic id (status `NOT OK`), but it does not unilaterally
+ * flip startup/readiness/liveness for statuses the broken prober never
+ * proved it was responsible for.
+ */
+const probeSingle = async (
+  prober: Prober,
+  index: number,
+  timeoutMs: number,
+  asOf: Date
+): Promise<DependencyStatus> => {
+  let serviceId = `prober[${String(index)}]`;
+  let affectedStatuses: StatusKeyType[] = [];
+  let status: HealthStatus = HealthStatus.OK;
+
+  try {
+    serviceId = prober.serviceId();
+    affectedStatuses = prober.affectsStatuses();
+    await withTimeout(timeoutMs, (signal) => prober.check(signal));
+  } catch {
+    status = HealthStatus.NotOK;
+  }
+
+  return { serviceId, status, affectedStatuses, asOf };
+};
+
 export const probeDependencies = async (
   timeoutMs: number,
   ...probers: Prober[]
@@ -124,25 +159,12 @@ export const probeDependencies = async (
   // in one probing cycle share a consistent timestamp.
   const asOf = new Date();
 
-  const statuses = await Promise.all(
-    probers.map(async (prober): Promise<DependencyStatus> => {
-      let status: HealthStatus = HealthStatus.OK;
-      try {
-        await withTimeout(timeoutMs, (signal) => prober.check(signal));
-      } catch {
-        status = HealthStatus.NotOK;
-      }
-
-      return {
-        serviceId: prober.serviceId(),
-        status,
-        affectedStatuses: prober.affectsStatuses(),
-        asOf
-      };
-    })
+  // Every element settled by probeSingle always resolves (never rejects), so
+  // a single misbehaving Prober can never fail this Promise.all and wipe out
+  // the rest of the batch's results.
+  return Promise.all(
+    probers.map((prober, index) => probeSingle(prober, index, timeoutMs, asOf))
   );
-
-  return statuses;
 };
 
 export interface Stopper {
