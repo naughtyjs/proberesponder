@@ -152,6 +152,39 @@ const stopper = start(
 stopper?.stop();
 ```
 
+## Performance
+
+The package is designed to stay out of the way on the hot path: routing is
+O(1) (an internal method+path map, not a linear scan), content negotiation is
+O(producible types) with no regex, and the core status manager never blocks.
+
+Run the zero-dependency benchmark yourself:
+
+```bash
+npm run bench
+```
+
+Example output (Node.js v26.4.0, Apple M-series, macOS, loopback,
+`Connection: keep-alive`, 50 concurrent clients — illustrative only, not a
+guarantee: numbers depend on your host, Node version, and load):
+
+```
+## contentNegotiator (pure function, no I/O)
+iterations:  2,000,000
+elapsed:     1328.7ms
+throughput:  1,505,224 ops/sec
+
+## End-to-end HTTP GET /-/live (keep-alive, loopback)
+concurrency: 50
+duration:    3.00s
+requests:    86,549
+throughput:  28,810 req/sec
+latency p50: 1.57ms
+latency p95: 2.05ms
+latency p99: 5.32ms
+latency max: 48.89ms
+```
+
 ## Development
 
 ```bash
@@ -161,6 +194,7 @@ npm run lint
 npm test
 npm run build
 npm run check:package   # publint + are-the-types-wrong on the built package
+npm run bench            # optional: local throughput/latency benchmark
 ```
 
 ## Notes on Go parity
