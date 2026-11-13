@@ -1,6 +1,6 @@
 {
     "name": "@naughtyjs/proberesponder",
-    "version": "0.2.1",
+    "version": "0.3.0",
     "description": "Zero-dependency probe responder utilities for Kubernetes-style startup/readiness/liveness in Node.js and TypeScript",
     "type": "module",
     "license": "MIT",
@@ -56,10 +56,10 @@
         "./package.json": "./package.json"
     },
     "engines": {
-        "node": ">=20",
+        "node": ">=22.18",
         "npm": ">=10"
     },
-    "packageManager": "npm@10.9.4",
+    "packageManager": "npm@12.2.2",
     "publishConfig": {
         "access": "public",
         "registry": "https://npm.pkg.github.com"
@@ -81,18 +81,21 @@
         "prepack": "npm run build",
         "prepublishOnly": "npm run typecheck && npm run lint && npm test && npm run check:package"
     },
+    "overrides": {
+        "minimatch": "^11.0.8"
+    },
     "devDependencies": {
-        "@arethetypeswrong/cli": "^0.18.2",
-        "@eslint/js": "^9.28.0",
-        "@types/node": "^26.1.0",
-        "@vitest/coverage-v8": "^4.1.7",
-        "eslint": "^9.28.0",
-        "eslint-config-prettier": "^10.1.5",
-        "prettier": "^3.5.3",
-        "publint": "^0.3.14",
-        "tsup": "^8.5.0",
-        "typescript-eslint": "^8.33.1",
-        "typescript": "^5.8.3",
-        "vitest": "^4.1.7"
+        "@arethetypeswrong/cli": "^0.18.5",
+        "@eslint/js": "^10.0.1",
+        "@types/node": "^26.6.6",
+        "@vitest/coverage-v8": "^5.1.0",
+        "eslint": "^10.14.0",
+        "eslint-config-prettier": "^10.1.8",
+        "prettier": "^3.10.1",
+        "publint": "^0.3.25",
+        "tsup": "^9.0.0",
+        "typescript-eslint": "^8.72.2",
+        "typescript": "^6.0.3",
+        "vitest": "^5.1.0"
     }
 }

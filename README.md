@@ -10,7 +10,7 @@ All probe statuses are `NOT OK` by default. This is intentional so applications 
 
 ## Compatibility
 
-- Node.js `>=20`
+- Node.js `>=22.18`
 - **ESM-only** (`"type": "module"`). This package ships no CommonJS build. From
   CommonJS you can still load it via dynamic `import()`:
 
