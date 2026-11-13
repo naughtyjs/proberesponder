@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog.
 
+## [0.3.0] - 2026-11-13
+
+### Changed
+
+- **BREAKING:** minimum supported Node.js is now `>=22.18` (was `>=20`).
+  Node 20 reached end-of-life on 2026-04-30, and the current dev tooling
+  (`vitest` 5, `tsup` 9) no longer runs on it. The published bundle is now
+  built with target `node22`.
+- CI matrix is now Node 22, 24 and 26; the release workflow publishes from
+  Node 26. Added `.nvmrc` pinned to `26`.
+- `packageManager` is now `npm@12.2.2`.
+- Upgraded all dev dependencies to their latest stable versions: `vitest`
+  and `@vitest/coverage-v8` 5.1, `eslint` and `@eslint/js` 10.14, `tsup` 9,
+  `typescript` 6.0, `typescript-eslint` 8.72, `@types/node` 26.6, `prettier`
+  3.10, `publint` 0.3.25, `@arethetypeswrong/cli` 0.18.5 and
+  `eslint-config-prettier` 10.1.8.
+- Bumped GitHub Actions: `actions/checkout` v7.0.1, `actions/setup-node`
+  v7.1.0, `github/codeql-action` v4.39.3 (still pinned by SHA).
+- Added an `overrides` entry for `minimatch` (`^11.0.8`) to clear a
+  moderate-severity advisory in the ESLint toolchain. `npm audit` is clean.
+
+### Notes
+
+- `typescript` stays on 6.0.x on purpose: `typescript-eslint` does not yet
+  support TypeScript 7 (peer range `<6.1.0`). See ADR 004.
+
 ## [0.2.1] - 2026-07-02
 
 ### Added
