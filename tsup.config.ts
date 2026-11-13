@@ -15,5 +15,5 @@ export default defineConfig({
   treeshake: true,
   clean: true,
   outDir: "dist",
-  target: "node20"
+  target: "node22"
 });
